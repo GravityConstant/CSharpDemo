@@ -1,0 +1,75 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_LayoutPullbox.cshtml";
+    ViewBag.Title = "Edit";
+}
+
+<div class="row">
+    <!-- form start -->
+    <form class="form-horizontal" id="thisForm">
+        <input type="hidden" name="id" id="id" value="@ViewBag.id">
+        <div class="form-group">
+            <label class="col-sm-2 control-label">部门名称</label>
+            <div class="col-sm-8">
+                <input type="text" name="dname" class="form-control" placeholder="字母汉字" value="@ViewBag.dname">
+            </div>
+        </div>
+    </form>
+</div>
+
+@section scripts {
+    <script src="/Scripts/jquery-sdajax/jquery.sdajax.min.js"></script>
+    <!-- 验证插件 -->
+    <script src="/Scripts/jquery-validation/jquery.validate.min.js"></script>
+    <script src="/Scripts/jquery-validation/localization/messages_zh.min.js"></script>
+    <!-- 针对当前主题进行简单封装，精简代码 -->
+    <script src="/Scripts/sdtheme/scripts/sdvalidate.js"></script>
+    <script>
+        var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+        $(function () {
+            //验证
+            validateInfo();
+        })
+        //表单验证及AJAX提交
+        function validateInfo() {
+            var $thisForm = $('#thisForm');
+            $thisForm.sdvalidate({
+                submitHandler: function (form) {
+                    //var url = '/api/departmentapi/post'
+                    var url = '/department/edit'
+                    var data = $thisForm.serialize();
+                    console.log(data);
+                    //var data = JSON.stringify({ id: 6, dname: "销售二部" })
+                    //var data = {
+                    //    id: 6,
+                    //    dname: '销售二部'
+                    //}
+                    $.sdpost(url, data, function (re) {
+                        console.log(re);
+                        if (re.code === 0) {
+                            parent.layer.msg(re.msg)
+                            parent.refresh()
+                            parent.layer.close(index)
+                        } else {
+                            parent.layer.alert(re.msg, { icon: 2, title: '失败' })
+                        }
+                    });
+                    /*$.ajax({
+                        type: "post",
+                        url: url,
+                        contentType: 'application/json',
+                        data: data,
+                        success: function (data, status) {
+                            console.log(data);
+                        }
+                    });*/
+                    return false;
+                }
+            });
+        }
+
+        function FormSubmit() {
+            $("#thisForm").submit();
+        }
+    </script>
+}

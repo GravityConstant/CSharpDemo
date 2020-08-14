@@ -1,0 +1,145 @@
+﻿@using System.Data;
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Department";
+}
+
+
+<link href="/Scripts/dist/bootstrap-table-1.11.1/bootstrap-table.min.css" rel="stylesheet" />
+<div class="row">
+    <div class="form-inline form-group " style="line-height: 70px;">
+        <div class="input-group input-group-sm">
+            <input type="text" class="form-control" id="search-input" placeholder="检索 ..." style="height: 32px; margin-top: 19px; margin-left: 1px" size="40" />
+            <div id="toggle-result-format" class="input-group-btn">
+
+                <button title="查询" id="btnSearch" type="button" style="" class="btn btn-success  onclickbtn">
+                    <i class="fa fa-search onclickbtni" style=""></i>
+                </button>
+
+                <button title="新增" style="width: 40px;height:32px; border-color: #8fbcd9" ; class="btn btn-xs btn-white btn-info" id="btnAdd" onclick="editAction(0)" name="add">
+                    <i class="ace-icon fa fa-plus" style="-webkit-text-stroke: 0.6px #fff"></i>
+
+                </button>
+                
+
+                <button title="删除" style="width: 40px;height:32px; border-color: #8fbcd9" class="btn btn-xs btn-white btn-info" id="btnRemove" onclick="deleteAction()">
+                    <i class="ace-icon  fa fa-trash-o"></i>
+
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <table id="table"></table>
+</div>
+
+
+
+@section scripts {
+    <script src="/Scripts/dist/bootstrap-table-1.11.1/bootstrap-table.js"></script>
+    <script src="/Scripts/dist/bootstrap-table-1.11.1/locale/bootstrap-table-zh-CN.min.js"></script>
+    <script>
+        var table = '@Html.Raw(ViewData["table"].ToString())';
+        console.log("data:", table);
+        var result = JSON.parse(table);
+        console.log("result:", result);
+        var data = [];
+
+        if (result.code == 0) {
+            data = result.data;
+        }
+
+        function refresh() {
+            $table.bootstrapTable('refresh');
+        }
+
+        var url = '/api/departmentapi/get';
+
+        // 请求服务数据时所传参数
+        queryParams = function (params) {
+            var keyvalue = $("#search-input").val();
+            var values = {
+                //每页多少条数据
+                pageSize: params.limit,
+                //请求第几页
+                offset: params.offset, // 请求第几页
+                text: keyvalue
+            };
+            return values;
+        };
+
+        //查询搜索
+
+        $('#btnSearch').on('click', function () {
+            var keyvalue = $("#search-input").val();
+            $table.bootstrapTable("loadAddSearch", keyvalue);
+        });
+
+        var $table = $('#table');
+        // bootstrap table初始化
+        $table.bootstrapTable({
+            classes: 'table table-hover table-no-bordered table-striped',
+            pagination: true,
+            //data: data,
+            url: url,
+            idField: 'Id',
+            columns: [{
+                field: 'state',
+                checkbox: true,
+                radio: false,
+            }, {
+                field: 'id',
+                title: "ID",
+            }, {
+                field: 'dname',
+                title: '部门',
+            }, {
+                field: 'operate',
+                title: '操作',
+                formatter: function (value, row, index) {
+                    var ret = [];
+                    ret.push('<div class="btn-group">')
+                    if ('@ViewBag.canEdit' === 'True') {
+                        ret.push('<button title="修改" style="width: 40px;height:32px; border-color: #8fbcd9" class="btn btn-xs btn-white btn-info" id="btnEdit" onclick="editAction(' + row.id + ')" name="edit"><i class="ace-icon fa fa-pencil"></i></button>');
+                    }
+                    ret.push('</div>')
+                    return ret.join('');
+                }
+            }],
+            onLoadSuccess: function (data) {
+                console.log(data)
+            }
+        })
+
+        function editAction(id) {
+            var title = '添加部门';
+            if (id > 0) {
+                title = "编辑部门"
+            }
+            var url = 'department/edit?id=' + id;
+            layer.open({
+                type: 2,
+                title: title,
+                shadeClose: false,
+                shade: 0.2,
+                maxmin: true,
+                shift: 1,
+                area: ['800px', '400px'],
+                content: url,
+                btn: ['保存', '关闭'],
+                yes: function (index, layero) {
+                    var iframeWin = window[layero.find('iframe')[0]['name']];
+                    iframeWin.FormSubmit();
+                }
+            });
+        }
+
+        function deleteAction() {
+
+        }
+
+    </script>
+
+}
+
